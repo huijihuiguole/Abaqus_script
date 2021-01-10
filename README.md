@@ -1,4 +1,3 @@
-# hello-world
-My first trial
+# Abaqus script
 
-This is the first commit trial.
+This is some simple ABAQUS script used in my research.
