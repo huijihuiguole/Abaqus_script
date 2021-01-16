@@ -59,18 +59,6 @@ class Output_from_ODB():
                   (self.Current_Output[group[0]+"y"]-self.Current_Output[group[1]+"y"])**2+
                   (self.Current_Output[group[0]+"z"]-self.Current_Output[group[1]+"z"])**2)**0.5)
         return self.Current_Output
-        
-    
-        
-    def minimum_thickness(self,group):
-        for groupname, group in group.items():
-            minimum = self.Current_Output[groupname+"thickness"][0]
-            for thickness in self.Current_Output[groupname+"thickness"]:
-                if minimum > thickness:
-                    minimum = thickness
-            self.Current_Output[groupname+"thickness"] = [minimum]
-        return self.Current_Output
-    
 
 
     def height_of_tube(self, pathname, threshold,originalheight):
@@ -78,6 +66,18 @@ class Output_from_ODB():
         A[self.Current_Output[pathname+"x"]<threshold] = 1
         count = sum(A)
         self.Current_Output["height"] = [(self.Current_Output[pathname+"z"][count]+(self.Current_Output[pathname+"z"][count+1]-self.Current_Output[pathname+"z"][count])*(182-self.Current_Output[pathname+"x"][count])/(self.Current_Output[pathname+"x"][count+1]-self.Current_Output[pathname+"x"][count]))-originalheight]
+        return self.Current_Output
+        
+        
+    def minimum_thickness(self,group):
+        for groupname, group in group.items():
+            minimum = self.Current_Output[groupname+"thickness"][0]
+            for thickness,x in zip(self.Current_Output[groupname+"thickness"],self.Current_Output[group[1]+'x']):
+                if x>182:
+                    continue
+                if minimum > thickness:
+                    minimum = thickness
+            self.Current_Output[groupname+"thickness"] = [minimum]
         return self.Current_Output
         
         
@@ -113,9 +113,9 @@ class Output_from_ODB():
             
             
 ##########################################################################################################
-jobname1 = ["0","elastic2","fluid"]
+jobname1 = ["0","elastic2","fluid-55Mpa"]
 #jobname2 = ["no1","no2","no3","no4","no5","no6","no7","no8","no9","no10","no11"]
-jobname2 = ["no8","no10","no11"]
+jobname2 = ["no1","no2","no3","no4","no5","no6","no7","no8","no10","no11"]
 number = {"AO":[53381,54161,157],\
         "AI":[53385,54165,157],\
         "BO":[1,781,157],\
@@ -136,13 +136,17 @@ def output(jobname,instance ,number,steps,frame,group1,group2,pathname,threshold
         publication.path(instance = instance, number = number)
         publication.Coordinate_Along_Path(steps = steps,frame = frame)
         publication.thickness(group = group1)
-        publication.minimum_thickness(group = group2)
         publication.height_of_tube(pathname = pathname,threshold = threshold,originalheight=originalheight)
+        publication.minimum_thickness(group = group2)
         publication.write_CSV(jobname+' '+str(frame))
     finally:
         publication.o.close()#no matter bug or not, if dont close odb, the name of nodeset will be engaged forever
 
-#output("fluid-55Mpa","GC-1",number,"Step-1",20,group1,group2,"AO",182,114)        
+output("fluid-55Mpa","GC-1",number,"Step-1",20,group1,group2,"AO",182,114)  
+output("0","GC-1",number,"Step-1",6,group1,group2,"AO",182,114) 
+output("0","GC-1",number,"Step-1",8,group1,group2,"AO",182,114) 
+output("0","GC-1",number,"Step-1",12,group1,group2,"AO",182,114) 
+output("elastic2","GC-1",number,"Step-1",14,group1,group2,"AO",182,114) 
 #for jobname in jobname1:
 #    output(jobname,"GC-1",number,"Step-1",14,group1,group2,"AO",182,114)
 for jobname in jobname2:
